@@ -149,7 +149,8 @@ void output_hy3(struct hy3_file &hy3, TParams &param, const double hypo[4],
 	
 	double dx = a.X - hypo[0];
 	double dy = a.Y - hypo[1];
-	double dz = a.Z - hypo[2];
+	//double dz = a.Z - hypo[2];
+	double dz = 0.0 - hypo[2];
 	// calculate azimuth from the epicenter to the station
 	double aaz = std::atan2(dy, dx) * RAD2DEG;
    	aaz = std::fmod(720.0 + aaz - meridian_con, 360.0);

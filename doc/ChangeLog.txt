@@ -1,7 +1,11 @@
+2026-01-04 v0.10.5
+Environment variable ELA_CONFIG to specify config file path.
+output_hy3.cpp: the depth of the hypocenter is displayed
+relative to the surface.
+
 2025-05-15 v0.10.4
 Reduce debug output.
 Add version.c
-
 
 2025-04-26 v0.10.3
 hy3file.c: hy3save

@@ -26,6 +26,21 @@ using std::string;
 #include "output_hy3.h"
 #include "hy3file.h"
 
+
+#include <cstdlib>
+#include <string>
+std::string get_env_var(const std::string &var_name, const std::string &default_value = "") {
+    // Use C function getenv to retrieve the environment variable
+    // var_name: name of the environment variable
+    // default_value: value to return if the environment variable is not found
+    const char *value = std::getenv(var_name.c_str());
+    if (value) {
+	return std::string(value);
+    } else {
+	return default_value;
+    }
+}
+
 int get_hypo(const CArrivalFile & arrs, const TParams &param,
 	       std::array<double,4> & hypo, double (& covM)[4][4]);
 
@@ -53,10 +68,10 @@ try {
     po::options_description generic("Generic options");
     generic.add_options()
 	("version,v", "print version string")
-        ("help,h", "produce help message")
+        ("help,h", "help message")
 	("config,c",
 	 po::value<string>(&config_file)->default_value("ela.cfg"),
-	 "name of a file of a configuration.");
+	 "configuration file (full path)");
 	
     po::options_description cmd("Command line I/O options");
     cmd.add_options()
@@ -68,9 +83,9 @@ try {
         ("model,m", po::value<string>(), "input model file")
         ("stations,s", po::value<string>(), "input list of stations")
         ("reading_err", po::value<double>(&reading_err)->default_value(0),
-	 "set error of arrival time observationd [s]")
+	 "set arrival time reading error [s]")
         ("model_err", po::value<double>(&model_err)->default_value(0),
-	 "set error of propagation times predictions [s]");
+	 "set propagation time prediction error [s]");
 
     desc.add(generic).add(cmd).add(config);
 
@@ -99,15 +114,39 @@ try {
         return 0;
       }
 
-    // read config file
+    // read configuration file options
+    // Path to configuration file is in config_file variable set above.
+    // config_file is set to full path if -c option is used
+    // or set to 'ela.cfg' in current directory by default.
+    // If 'ela.cfg' file is not found in current directory,
+    // read ela.cfg from ELA_CONFIG directory.
     std::ifstream ifs(config_file.c_str());
     if (!ifs) {
-        cout << "can not open config file: " << config_file << "\n";
-        return 0;
-      }
-    else {
+	// if file was not found
+	// and config_file contains only file name 'ela.cfg'
+	// try to read from ELA_CONFIG directory
+	if (config_file == "ela.cfg") {
+	    std::string env_config_dir = get_env_var("ELA_CONFIG", "");
+	    if (!env_config_dir.empty()) {
+		config_file = env_config_dir + "/" + config_file;
+		ifs.open(config_file.c_str());
+	    }
+	    else {
+	        // if ELA_CONFIG is not set, print error and exit.
+		cout << "Environment variable ELA_CONFIG is not set.\n"
+		     << "Cannot find configuration file: " << config_file << "\n";
+		return 1;
+	    }
+	}
+    }
+
+    if (ifs) {
 	po::store(po::parse_config_file(ifs, config_file_options), vm);
 	po::notify(vm);
+      }
+    else {
+        cout << "Cannot open config file: " << config_file << "\n";
+        return 1;
       }
 
     // input hyp file

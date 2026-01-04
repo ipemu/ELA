@@ -41,7 +41,7 @@ To install the program, follow these steps:
 
 1. Clone the ELA repository from GitHub:
    ```bash
-   git clone https://github.com/zacherle/ela.git
+   git clone https://github.com/ipemu/ela.git
    ```
 
 2. Navigate to the cloned repository directory and compile the program:
