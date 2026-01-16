@@ -1,3 +1,10 @@
+2026-02-16 v0.10.6
+ela_d.cpp: Avoid starting point at zero depth.
+Recollect Gather data for resulting hypocenter solution.
+gather.cpp: method Gather.print() for debug output
+ela_main.cpp: default value env. var. ELA_CONFIG=/opt/ipe/share/ela
+hy3file.cpp: Write epi- and hypcenter distance to 4 significant digits.
+
 2026-01-04 v0.10.5
 Environment variable ELA_CONFIG to specify config file path.
 output_hy3.cpp: the depth of the hypocenter is displayed

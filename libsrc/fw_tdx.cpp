@@ -65,13 +65,18 @@ void tdxder(int* p_m, int* p_n, double* x, double* fvec, double* fjac, int* p_ld
     // transform from optimization x to bounded parametric xp space
     auto xp_=Xp(x, 0.0);  // relief = 0.0
     if (iflag == 1) {
+	// solution of the forward problem for given xp_
 	mres=gather.collect(xp_.data());
+	// residuals between observed and calculated data and their weights
         mres=gather.get_res_w(xp_.data(), m, fvec, w);
         // fvec = fvec * w (elementwise multiplication)
         for (int j = 0; j < m; j++) {
             fvec[j] = fvec[j] * w[j];
         }
     } else if (iflag == 2) {
+	// we do not need to solve the forward problem again
+	// because it was already solved when iflag == 1
+	// just get the Jacobian matrix and weights
         mres=gather.get_G_w(m, fjac, w);
         // transform dt/dz from bounded xp -> optimization xo space
         // dpdo = dz_p(z_o)/dz_o 
@@ -118,15 +123,59 @@ void tdx3(int* p_m, int* p_n, double* x, double* fvec, double* fjac, int* p_ldja
     double w[m];
     int mres;
 
+/*    
+    // print iflag and x for debugging
+    std::cout << "iflag = " << iflag << std::endl;
+    std::cout << "x = ";
+    for (int i = 0; i < n; i++) {
+	std::cout << x[i] << " ";
+    }
+    std::cout << std::endl;
+*/
+/*
+ * Example output for debugging: (fixed depth x[2] = 1)
+iflag = 1
+x = 1099.58 766.639 1 1.411 
+iflag = 2
+x = 1099.58 766.639 1 1.411 
+iflag = 1
+x = 1099.92 766.573 1 1.68392 
+iflag = 2
+x = 1099.92 766.573 1 1.68392 
+iflag = 1
+x = 1099.93 766.571 1 1.68452 
+iflag = 2
+x = 1099.93 766.571 1 1.68452 
+iflag = 1
+x = 1099.92 766.574 1 1.6836 
+     EXIT PARAMETER                         2
+     FINAL APPROXIMATE SOLUTION   1099.9252796    766.5714316      1.0000000      1.6845235
+Analyzing the debug output, we see that the optimization procedure
+calls tdx3 alternately with iflag = 1 and iflag = 2 for each iteration of x.
+For each iteration of x, first fvec is computed (iflag = 1),
+then fjac is computed (iflag = 2).
+
+The last call is with iflag = 1 for an unsuccessful iteration of x.
+Therefore, after completing the optimization calculation, it is necessary
+to recollect the gather data for the resulting solution of vector x.
+*/   
     if (iflag == 1) {
+	// solution of the forward problem for given x
 	mres=gather.collect(x);
+	//gather.print();
+	// residuals between observed and calculated data and their weights
         mres=gather.get_res_w(x, m, fvec, w);
+	// residuals with weights
 	// fvec = fvec * w (elementwise multiplication)
         for (int j = 0; j < m; j++) {
             fvec[j] = fvec[j] * w[j];
         }
     } else if (iflag == 2) {
+	// we do not need to solve the forward problem again
+	// because it was already solved when iflag == 1
+	// just get the Jacobian matrix and weights
         mres=gather.get_G_w(m, fjac, w);
+	// Jacobian with weights
         for (int j = 0; j < m; j++) {
             float wt = w[j];
             fjac[j+0*m] *= wt;

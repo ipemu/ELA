@@ -1,5 +1,5 @@
 // Version information
-#define VERS "v0.10.5"
+#define VERS "v0.10.6"
 
 #include <stdio.h>
 //#include <string.h>

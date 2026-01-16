@@ -71,7 +71,7 @@ int get_hypo(const CArrivalFile & arrs, const TParams &param,
     double* w = new double[marr];
     double** fjac=alloc_2d_double_F(marr, 4);
     
-    int info;
+    int info=0;
     //std::array<std::array<double,4>,4> covM;
 
     if (param.fix[0] || param.fix[1]) {
@@ -92,6 +92,7 @@ int get_hypo(const CArrivalFile & arrs, const TParams &param,
             return 1;
         }
         //  search the nearest station
+	//  it is the one with the smallest arrival time
         int n0 = 0; 
         double t0 = 1e20;
         for (int i = 0; i < marr; i++) {
@@ -104,16 +105,49 @@ int get_hypo(const CArrivalFile & arrs, const TParams &param,
         double x0 = arrs.arr[n0].X;
         double y0 = arrs.arr[n0].Y;
         //double z0 = arrs.arr[n0].Z;
-    
-        hypo = {x0+0.1, y0+0.1, 7.0, t0-0.5};
+   
+        // initial hypocenter guess
+	// slight offset from the nearest station
+        hypo = {x0+0.1, y0+0.1, 0.0, t0-0.5};
         hypo[2] = param.startpt[2]; // start from the depth
+	// if depth is zero and is not fixed,
+	// use the startpt depth 0.01 km
+	// to avoid singularity
+	if (hypo[2] <= 0.0 && !param.fix[2]) {
+		hypo[2] = 0.01;
+	}
+
+	// LM iterative solution (Levenberg-Marquardt)
         loc_hypo_lm(hypo, marr, fvec, &fjac[0][0], param.fix[2], info);
+
+	// We call gather.collect again here, because the last call inside
+	// the iterative solution may not have been made with the resulting
+	// value of hypo
+	gather.collect(hypo.data());
+        /*
+	std::cout << "     FINAL L2 NORM OF THE RESIDUALS"
+         << std::setw(15) << std::fixed << std::setprecision(7) << enorm(marr, fvec) << std::endl;
+        */
     } // end if not xyz fix
 
-    //gather.get_res_w(hypo.data(), marr, fvec, w);
+/*
+    // print hypo values for debug
+    std::cout << "Hypocenter solution:\n";
+    std::cout << "  X = " << hypo[0] << " km\n";
+    std::cout << "  Y = " << hypo[1] << " km\n";
+    std::cout << "  Z = " << hypo[2] << " km\n";
+    std::cout << "  Origin Time = " << hypo[3] << " sec\n";
 
-    std::cout << "     FINAL L2 NORM OF THE RESIDUALS"
-         << std::setw(15) << std::fixed << std::setprecision(7) << enorm(marr, fvec) << std::endl;
+    gather.print();
+   
+    gather.get_res_w(hypo.data(), marr, fvec, w);
+
+    // print fvec values for debug
+    for (int i = 0; i < marr; i++) {
+	std::cout << "fvec[" << i << "] = " << fvec[i] << std::endl;
+    }
+    
+*/    
 
     // covariance
     gather.get_res_w(hypo.data(), marr, fvec, w);
@@ -126,6 +160,7 @@ int get_hypo(const CArrivalFile & arrs, const TParams &param,
             fjac[j][i] = fjac[j][i] * w[i];  // column-wise
         }
     }
+
     cov_matrix2(&(covM[0][0]), marr, 4, fvec, &(fjac[0][0]), w, param.reading_err, param.model_err);
     // print covariance matrix
     /*

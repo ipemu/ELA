@@ -46,18 +46,19 @@ void hy3save(struct hy3_file * hy3, FILE *fout) {
 		   hy3->ref_time.tm_hour, hy3->ref_time.tm_min);
 
    // header for station data
-   fprintf(fout, "\n---------------------------------------------------------------------------");
-   fprintf(fout, "\n sta     |obs. t.|cal. t.|res.  |amplitude|freq| w| epi |hypo |azm|ain|xmag");
-   fprintf(fout, "\n         |  [s]  |  [s]  | [s]  |  [m/s]  |[Hz]|  |[km] |[km] |[o]|[o]|    ");
-   fprintf(fout, "\n---------------------------------------------------------------------------");
+   fprintf(fout, "\n-------------------------------------------------------------------------------");
+   fprintf(fout, "\n sta     |obs. t.|cal. t.|res.  |amplitude|freq| w| epi |hypo | azm | ain |xmag");
+   fprintf(fout, "\n         |  [s]  |  [s]  | [s]  |  [m/s]  |[Hz]|  |[km] |[km] | [o] | [o] |    ");
+   fprintf(fout, "\n-------------------------------------------------------------------------------");
    int irec;
    for (irec=0;irec<hy3->nrec;irec++) {
-	   fprintf(fout, "\n%-5s %-3s|% 7.3f|% 7.3f|%6.3f|%9.2e|%4.1f|%2.0f|%5.1f|%5.1f|%5.1f|%5.1f|", 
+	   fprintf(fout, "\n%-5s %-3s|% 7.3f|% 7.3f|%6.3f|%9.2e|%4.1f|%2.0f|%5.4g|%5.4g|%5.1f|%5.1f|", 
 		   hy3->rec[irec].sta, hy3->rec[irec].ph,
 		   hy3->rec[irec].obs_t, hy3->rec[irec].cal_t, hy3->rec[irec].res,
 		   hy3->rec[irec].amp, hy3->rec[irec].freq,
 		   hy3->rec[irec].w,
-		   hy3->rec[irec].epi, hy3->rec[irec].hypo,
+		   floor(hy3->rec[irec].epi*1000.0f)/1000.0f,   // truncate to 3 decimal places
+		   floor(hy3->rec[irec].hypo*1000.0f)/1000.0f,
 		   hy3->rec[irec].azm, hy3->rec[irec].ain);
 	   if (hy3->rec[irec].xmag > -9.0) fprintf(fout, "%5.2f", hy3->rec[irec].xmag);
    }
@@ -89,12 +90,12 @@ void hy3save(struct hy3_file * hy3, FILE *fout) {
 
 int hy3load (struct hy3_file *hy3, FILE *fin) {
 
-  char line[80];
+  char line[85];
   char *variable;
   char *value;
   int irec = 0;
 
-  while (fgets (line, 79, fin) != NULL)
+  while (fgets (line, 84, fin) != NULL)
     {				//line
 
       if ((value = strchr (line, ':')))

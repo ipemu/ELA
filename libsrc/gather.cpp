@@ -5,6 +5,7 @@
 
 #include "arrivals.h"
 #include "twopoint.h"
+
 /*
 // Gather class
 // This class is used to collect the travel time information from the arrivals
@@ -154,3 +155,21 @@ public:
     }
 
 Gather gather;
+
+// method to write gather data for debugging on console
+void Gather::print() {
+    std::cout << "# ObsX ObsY ObsZ Phase Trec Tcal dtdx dtdy dtdz Toa Wt" << std::endl;
+    auto a = arrs.arr;
+    for (int i = 0; i < ngather; ++i) {
+	std::cout << a[i].X << " " << a[i].Y << " " << a[i].Z << " "
+	    << a[i].phase << " "
+	    << trec[i] << " "
+	    << ttcal[i] << " "
+	    << dtdx[i] << " "
+	    << dtdy[i] << " "
+	    << dtdz[i] << " "
+	    << toa[i] << " "
+	    << wt[i] << std::endl;
+    }
+}
+

@@ -45,7 +45,8 @@ public:
    int get_topt(double* x);
    int get_res_w(const double* x, int ldjac, double* fvec, double* w);
    int get_G_w(int ldjac, double* fjac, double* w);
-};
+   void print();
+};  // class Gather
 
 extern Gather gather;
 

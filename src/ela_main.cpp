@@ -126,7 +126,8 @@ try {
 	// and config_file contains only file name 'ela.cfg'
 	// try to read from ELA_CONFIG directory
 	if (config_file == "ela.cfg") {
-	    std::string env_config_dir = get_env_var("ELA_CONFIG", "");
+	    std::string env_config_dir = get_env_var("ELA_CONFIG",
+			    "/opt/ipe/share/ela");
 	    if (!env_config_dir.empty()) {
 		config_file = env_config_dir + "/" + config_file;
 		ifs.open(config_file.c_str());
@@ -237,7 +238,7 @@ do {
     std::cout << " Start point [X,Y,Z]\n"
               << "       orig. time given by minimizing procedure\n"
               << "       space coord. = 0 ... value of the nearest station\n"
-              << "       [0,0,0,0]:_";
+              << "       [0,0,0]:_";
     std::string line;
     if (!std::getline(std::cin, line)) {
         continue;
@@ -257,9 +258,11 @@ do {
             continue; // Error: not enough values or invalid input
 		      // continue to prompt again
 	}
+	/*
         if (!(iss >> startpt[3])) {
 	    startpt[3] = 0.0; // Default value for the 4th element
 	}
+	*/
 
 	break; // exit the loop
     }
